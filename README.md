@@ -1,1 +1,4 @@
 # data_science
+# Abstarct
+
+In the study and modeling of new materials, structural complexity has long been a challenge. Technology has advanced to the point that computational techniques have been developed to generate simulation data that is automated and accelerated. Microstructure, with several functional modes that are connected in their operation, contributes to the overall property of a material at a macroscale level. This study aims to implement a data-driven and automated process that allows us to identify structural characteristics that have the largest impact on macroscale material properties. Using a multiple step workflow including data pre-processing, microstructure quantification, dimensionality reduction, and validation of the relationship between macro and microscale quantities we have deduced connection between microstructure and properties of randomly structured porous and solid materials. 
