@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
-import pprint,re,math
+import pprint,re,math,os
 from statistics import mean 
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score,recall_score,precision_score,f1_score,confusion_matrix,roc_auc_score, r2_score
+import openpyxl
 
 def model_evaluation(model_name,Y_test,Y_pred):
     try:
@@ -136,3 +137,77 @@ def scr_to_df(scr_file_path):
     return pd.DataFrame.from_dict(scr_to_dict(scr_file_path),orient='index')  
 
 
+
+def process_data_to_spreadsheet(config):
+    set_workbook=set()
+    
+    
+    for key in config.sections():
+        worksheet = config[key]['worksheet']
+        result = config[key]['result']
+        scr = config[key]['scr']
+        workbook = config[key]['workbook']
+        print(f'writing {worksheet} ...to {workbook} using:\n\tresult:{result}\n\tscr:{scr}')
+        # # create dataset 
+        df_result = result_to_df(result)
+        df_ar=scr_to_df(scr)
+        df = pd.merge(df_result, df_ar, on='id')
+        
+        
+
+        
+    
+        if os.path.exists(workbook):
+            with pd.ExcelWriter(workbook,  mode="a", engine='openpyxl',if_sheet_exists="replace") as writer:
+                df.to_excel(writer, sheet_name=worksheet)
+
+        else:
+            df.to_excel(workbook, sheet_name = worksheet)
+            
+        set_workbook.add(workbook)
+    for book in set_workbook:
+
+        if os.path.exists(book):print('spreadsheet Created')          
+def merge_worksheet_data(workbook):
+    print(f'Creating plots on {workbook}')
+    df_map = pd.read_excel(workbook,engine='openpyxl',sheet_name=None)
+    df = pd.concat(df_map, ignore_index=True)
+    with pd.ExcelWriter(workbook,  mode="a", engine='openpyxl',if_sheet_exists="replace") as writer:
+                df.to_excel(writer, sheet_name="all_data")
+                
+def generate_plots(workbook):
+    
+    print(f'Creating plots on {workbook}')
+    df_map = pd.read_excel(workbook,engine='openpyxl',sheet_name=None)
+    # df=df_map['highrho-lowar']
+    for key in df_map:
+        df=df_map[key]
+        i=50
+        target_param=['AR','C11','Mesh volume']
+
+        for col_x in target_param:
+            y = df['E1']
+            x = df[col_x]
+            
+
+
+            fig, ax = plt.subplots()
+            ax.set(title = f'E1 vs {col_x}',
+                xlabel = col_x,
+                ylabel = 'E1')
+
+            ax.yaxis.grid()
+            ax.xaxis.grid()
+
+            plt.scatter(x, y)
+            plt.savefig(f'E1_vs_{col_x}.png')
+            wb = openpyxl.load_workbook(workbook)
+            ws = wb[key]
+            img = openpyxl.drawing.image.Image(f'E1_vs_{col_x}.png')
+            img.anchor = f'A{i}'
+            i+=25
+            ws.add_image(img)
+            wb.save(workbook)
+    wb.close()
+
+    print('done plotting.') 
